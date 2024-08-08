@@ -1,0 +1,6 @@
+---
+# vars file for install_mysql
+mysql_root_password: root_password
+db_name: test_db
+db_user: test_user
+db_password: test_user_password

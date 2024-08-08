@@ -1,0 +1,13 @@
+[Unit]
+Description=service that run /bin/replication_monitoring.sh which is ascript that log the current state of mysql database replication
+Wants=mysql.service mysqld.service
+After=mysql.service mysqld.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/replication_monitoring.sh
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

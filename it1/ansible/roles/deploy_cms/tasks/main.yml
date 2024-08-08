@@ -1,0 +1,83 @@
+---
+
+
+- name: Download CMS (e.g., WordPress)
+  get_url:
+    url: "https://wordpress.org/latest.zip"
+    dest: "/tmp/wordpress.zip"
+
+- name: Unzip CMS package
+  unarchive:
+    src: "/tmp/wordpress.zip"
+    dest: "/var/www/html/"
+    remote_src: yes
+    creates: "/var/www/html/wordpress/"
+
+- name: Set up CMS configuration
+  template:
+    src: "wp-config.php.j2"
+    dest: "/var/www/html/wordpress/wp-config.php"
+    owner: www-data
+    group: www-data
+    mode: 0644
+  notify:
+    - restart apache
+  when: ansible_os_family == 'Debian'
+
+- name: Set up CMS directory permissions
+  file:
+    path: "/var/www/html/wordpress"
+    owner: www-data
+    group: www-data
+    recurse: yes
+    state: directory
+  when: ansible_os_family == 'Debian'
+
+- name: Set up CMS configuration
+  template:
+    src: "wp-config.php.j2"
+    dest: "/var/www/html/wordpress/wp-config.php"
+    owner: apache
+    group: apache
+    mode: 0644
+  notify:
+    - restart apache
+  when: ansible_os_family == 'RedHat'
+
+- name: Set up CMS directory permissions
+  file:
+    path: "/var/www/html/wordpress"
+    owner: apache
+    group: apache
+    recurse: yes
+    state: directory
+  when: ansible_os_family == 'RedHat'
+
+
+- name: Copy wordpress.conf to Apache sites-available
+  copy:
+    src: wordpress.conf
+    dest: /etc/apache2/sites-available/wordpress.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart apache
+  when: ansible_os_family == 'Debian'
+
+- name: Copy wordpress.conf to Apache sites-available
+  copy:
+    src: wordpress.conf
+    dest: "/etc/httpd/conf.d/wordpress.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart apache
+  when: ansible_os_family == 'RedHat'
+
+- name: Enable wordpress site
+  command: a2ensite wordpress.conf
+  notify:
+    - restart apache
+  when: ansible_os_family == 'Debian'

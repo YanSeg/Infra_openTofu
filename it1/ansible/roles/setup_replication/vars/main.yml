@@ -1,0 +1,6 @@
+---
+# vars file for setup_replication
+replication_user: replicator
+replication_password: replication_password
+wp_db_name: test_db
+mysql_root_password: root_password

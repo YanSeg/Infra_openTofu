@@ -1,0 +1,6 @@
+---
+cms_root_password: test_password
+cms_admin_user: admin_user
+cms_admin_password: admin_password
+cms_title: wordpress_test
+cms_url: test.local

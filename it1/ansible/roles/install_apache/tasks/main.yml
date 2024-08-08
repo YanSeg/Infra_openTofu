@@ -1,0 +1,70 @@
+---
+# tasks file for install_apache
+- name: Update apt cache 
+  apt:
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+
+- name: Update yum cache 
+  yum:
+    update_cache: yes
+  when: ansible_os_family == 'RedHat'
+
+- name: Install required packages
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - apache2  
+    - php  
+    - php-mysql  
+    - unzip  
+  when: ansible_os_family == 'Debian'
+
+
+- name: Install required packages
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - httpd  
+    - php  
+    - php-mysqlnd
+    - unzip  
+  when: ansible_os_family == 'RedHat'
+
+
+- name: Ensure services are started and enabled
+  service:
+    name: "{{ 'apache2' if ansible_os_family == 'Debian' else 'httpd'  }}"
+    state: started
+    enabled: yes
+
+- name: Ensure Apache mod_rewrite is enabled
+  apache2_module:
+    name: rewrite
+    state: present
+  notify:
+    - restart apache
+  when: ansible_os_family == 'Debian'
+
+- name: Add mod_rewrite module to httpd.conf
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    line: 'LoadModule rewrite_module modules/mod_rewrite.so'
+    state: present
+    insertafter: EOF 
+  when: ansible_os_family == 'RedHat'
+
+- name: Disable default Apache site
+  command: a2dissite 000-default.conf
+  notify:
+    - restart apache
+  when: ansible_os_family == 'Debian'
+
+- name: Disable default Apache site
+  command: mv /etc/httpd/conf.d/welcome.conf /etc/httpd/conf.d/welcome.conf.disabled
+  notify:
+    - restart apache
+  when: ansible_os_family == 'RedHat'
+  ignore_errors: true

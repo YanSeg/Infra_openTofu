@@ -1,0 +1,10 @@
+#cloud-config
+users:
+  - name: admin
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    groups: sudo
+    home: /home/admin
+    shell: /bin/bash
+    ssh-authorized-keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG9XZCAQYuV1Ux5s1NPCTsgIfW0t7ZUqb/6KYJklek3o quentin.sirjean@le-campus-numerique.fr
+    

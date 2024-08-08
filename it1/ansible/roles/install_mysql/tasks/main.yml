@@ -1,0 +1,73 @@
+---
+- name: Update apt cache 
+  apt:
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+
+- name: Update yum cache 
+  yum:
+    update_cache: yes
+  when: ansible_os_family == 'RedHat'
+
+- name: Install required packages
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - python3-pip
+    - mysql-server  
+  when: ansible_os_family == 'Debian'
+
+
+- name: Install required packages
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - python3-pip
+    - mysql-server  
+  when: ansible_os_family == 'RedHat'
+
+- name: Install PyMySQL for Python 3
+  pip:
+    name: PyMySQL
+    state: present
+
+- name: Install cryptography for Python 3
+  pip:
+    name: cryptography
+    state: present
+
+- name: Ensure services are started and enabled
+  service:
+    name: "{{'mysqld' if ansible_os_family == 'RedHat' else 'mysql' }}"
+    state: started
+    enabled: yes
+
+- name: Set MySQL root password
+  mysql_user:
+    login_unix_socket: "{{'/run/mysqld/mysqld.sock' if ansible_os_family == 'Debian' else '/var/lib/mysql/mysql.sock'}}"
+    user: root
+    password: "{{ mysql_root_password }}"
+    host_all: yes
+  ignore_errors: yes
+
+
+- name: Create MySQL user
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    priv: "{{ db_name }}.*:ALL"
+    state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+
+
+
+- name: Replace bind-address in MySQL config
+  replace:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: 'bind-address\s*=\s*.*'
+    replace: 'bind-address = 0.0.0.0'
+  when: ansible_os_family == 'Debian'
+

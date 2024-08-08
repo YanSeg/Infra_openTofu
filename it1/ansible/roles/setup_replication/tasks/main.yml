@@ -1,0 +1,123 @@
+---
+# tasks file for setup_replication
+- name: Install auth_socker plugin
+  command: mysql -u root -p{{ mysql_root_password }} -e "INSTALL PLUGIN auth_socket SONAME 'auth_socket.so';"
+  ignore_errors: yes
+
+
+
+- name: Ensure the MySQL configuration file has the correct server_id for server1
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '^server_id'
+    line: 'server_id=1'
+  when: inventory_hostname == 'cms_server_ubuntu'
+
+- name: Ensure the MySQL configuration file has the correct server_id for server2
+  lineinfile:
+    path: /etc/my.cnf.d/mysql-server.cnf  
+    regexp: '^server_id'
+    line: 'server_id=2'
+  when: inventory_hostname == 'cms_server_rocky'
+
+- name: Configure replication filters on master
+  lineinfile:
+    path: "{{ '/etc/mysql/mysql.conf.d/mysqld.cnf' if inventory_hostname == 'cms_server_ubuntu' else '/etc/my.cnf.d/mysql-server.cnf' }}"
+    line: "binlog-do-db={{ wp_db_name }}"
+    create: yes
+
+- name: Configure replication filters on slave
+  lineinfile:
+    path: "{{ '/etc/mysql/mysql.conf.d/mysqld.cnf' if inventory_hostname == 'cms_server_ubuntu' else '/etc/my.cnf.d/mysql-server.cnf' }}"
+    line: "replicate-do-db={{ wp_db_name }}"
+    create: yes
+
+- name: restart mysql
+  systemd:
+    name: "{{ 'mysql' if inventory_hostname == 'cms_server_ubuntu' else 'mysqld' }}"
+    state: restarted
+
+- name: restart mysql
+  systemd:
+    name: "{{'mysql' if inventory_hostname == 'cms_server_ubuntu' else 'mysqld'}}"
+    state: restarted
+
+
+- name: Create replication user
+  mysql_user:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    user: "{{ replication_user }}"
+    password: "{{ replication_password }}"
+    host: "%"
+    priv: "*.*:REPLICATION SLAVE"
+
+- name: Get the master status
+  command: mysql -u root -p{{ mysql_root_password }} -e "SHOW MASTER STATUS\G"
+  register: master_status_rocky
+  when: inventory_hostname == 'cms_server_rocky'
+
+- name: Get the master status
+  command: mysql -u root -p{{ mysql_root_password }} -e "SHOW MASTER STATUS\G"
+  register: master_status_ubuntu
+  when: inventory_hostname == 'cms_server_ubuntu'
+
+- name: Set master status variables
+  set_fact:
+    master_log_file: "{{ item | regex_search('File: (.+)', '\\1') }}"
+    master_log_pos: "{{ item | regex_search('Position: (.+)', '\\1') | int}}"
+  with_items: "{{ master_status_rocky.stdout_lines }}"
+  when: inventory_hostname == 'cms_server_rocky'
+
+- name: Set master status variables
+  set_fact:
+    master_log_file: "{{ item | regex_search('File: (.+)', '\\1') }}"
+    master_log_pos: "{{ item | regex_search('Position: (.+)', '\\1') | int }}"
+  with_items: "{{ master_status_ubuntu.stdout_lines }}"
+  when: inventory_hostname == 'cms_server_ubuntu'
+
+- name: Stop replication I/O thread 
+  mysql_replication:
+    mode: stopreplica
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+
+
+
+- name: Configure slave
+  mysql_replication:
+    mode: changeprimary
+    master_host: "{{ hostvars['cms_server_rocky']['ansible_host'] }}"
+    master_user: "{{ replication_user }}"
+    master_password: "{{ replication_password }}"
+    master_log_file: "{{ hostvars['cms_server_rocky']['master_log_file'] }}"
+    master_log_pos: "{{ hostvars['cms_server_rocky']['master_log_pos'] }}"
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  when: inventory_hostname == 'cms_server_ubuntu'
+
+- name: Configure slave
+  mysql_replication:
+    mode: changeprimary
+    master_host: "{{ hostvars['cms_server_ubuntu']['ansible_host'] }}"
+    master_user: "{{ replication_user }}"
+    master_password: "{{ replication_password }}"
+    master_log_file: "{{ hostvars['cms_server_ubuntu']['master_log_file'] }}"
+    master_log_pos: "{{ hostvars['cms_server_ubuntu']['master_log_pos'] }}"
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  when: inventory_hostname == 'cms_server_rocky'
+
+- name: Start slave
+  mysql_replication:
+    mode: startreplica
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  when: inventory_hostname == 'cms_server_ubuntu'
+
+- name: Start slave
+  mysql_replication:
+    mode: startreplica
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  when: inventory_hostname == 'cms_server_rocky'

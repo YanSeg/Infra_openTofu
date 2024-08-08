@@ -1,0 +1,14 @@
+---
+- name: Deploy CMS
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - install_mysql
+    - install_apache
+    - setup_replication
+    - deploy_cms
+
+
+

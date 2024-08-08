@@ -1,0 +1,83 @@
+---
+- name: Deploy service and scripts to servers
+  hosts: all 
+  become: yes  
+  vars:
+    zabbix_agent_conf_file: "/etc/zabbix/zabbix_agent2.conf"
+    logfile_path: "/var/log/mysql/replication_logfile.log"
+  tasks:
+
+
+    - name: Copy replication_monitoring.sh to /bin/
+      copy:
+        src: replication_monitoring.sh  
+        dest: /bin/replication_monitoring.sh
+        mode: "0755"  
+
+    - name: Copy replication_script.service
+      copy:
+        src:  replication_script.service
+        dest: /etc/systemd/system/replication_script.service
+        mode: "0755"  
+
+    - name: Copy replication_script.timer
+      copy:
+        src:  replication_script.timer
+        dest: /etc/systemd/system/replication_script.timer
+        mode: "0755"
+    
+    - name: Create replication_logfile.log if it does not exist
+      ansible.builtin.file:
+        path: /var/log/mysql/replication_logfile.log
+        state: touch    
+
+    - name: Grant read access to Zabbix Agent2
+      file:
+        path: /var/log/mysql/replication_logfile.log
+        owner: zabbix
+        group: zabbix
+        mode: '0644'
+
+    - name: Add user zabbix to group 
+      user:
+        name: zabbix
+        groups: "{{'adm' if ansible_os_family == 'Debian' else 'mysql'}}"
+        append: yes
+        
+    - name: Reload systemd to pick up new units
+      ansible.builtin.systemd:
+        daemon_reload: yes
+
+    - name: Enable replication_timer.timer to start on boot
+      ansible.builtin.systemd:
+        name: replication_script.timer
+        enabled: yes
+
+    - name: Start replication_script.timer immediately
+      ansible.builtin.systemd:
+        name: replication_script.timer
+        state: started
+
+    - name: Enable replication_script.service to start on boot
+      ansible.builtin.systemd:
+        name: replication_script.service
+        enabled: yes
+
+    - name: Start replication_script.service immediately
+      ansible.builtin.systemd:
+        name: replication_script.service
+        state: started
+
+    - name: Configure Zabbix Agent
+      lineinfile:
+        path: "{{ zabbix_agent_conf_file }}"
+        regexp: "^UserParameter="
+        line: |
+          UserParameter=custom.logfile.read,tail -n 2 {{ logfile_path }} | grep -o 'Slave.*'
+          UserParameter=read.pos,tail -n 2 {{ logfile_path }} | grep 'Exec_Master_Log_Pos:' | awk '{print $2}'
+        state: present
+
+    - name: restart zabbix-agent
+      service:
+        name: zabbix-agent2
+        state: restarted
