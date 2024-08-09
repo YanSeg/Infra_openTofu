@@ -1,10 +1,10 @@
 all:
   hosts:
     cms_server_rocky:
-      ansible_host: 192.168.122.216
+      ansible_host: 192.168.122.161
       ansible_ssh_common_args: -o StrictHostKeyChecking=no
       ansible_user: admin
     cms_server_ubuntu:
-      ansible_host: 192.168.122.105
+      ansible_host: 192.168.122.26
       ansible_ssh_common_args: -o StrictHostKeyChecking=no
       ansible_user: ubuntu

@@ -7,5 +7,5 @@ users:
     home: /home/ubuntu
     shell: /bin/bash
     ssh-authorized-keys:
-      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG9XZCAQYuV1Ux5s1NPCTsgIfW0t7ZUqb/6KYJklek3o quentin.sirjean@le-campus-numerique.fr
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCDZMOxvpwMal0m+AjdHidb0/lMK8Q2OjKlrCreY3hIUoLkksly8pOAbXMzRXlaDYq+GKTkxrKSeCO2qzQfSmafMQ7XbrQAu74HjPxSCpHCR2JSMsGKiSuPuG21D52SJnKMoxui9n0+smDbUUxjzfocLfj3HOgb7d+0OC1+VWGo28Q9WtTVxQyApvTnKdCQQN1LdEK5LFzaUrLg4uGH6Wq8dkkRYaYeRkzQVdH2cwsYsKAT53MO/A09Hvpx7eyw9GuD1/mQ8g/EMh6KwJzO8WDP8zbrttTji3H2sRcPPTRIvHCYGPsFtZZpEk42PnyP94P6IGnUnxJp85tQl5ERUEpu/mlup3dp319lXnv8TdOP7VhWMCr0Xr8/HWUyPfBLRBNHrVHo9gVKtvYIhwiHIu0crIRCYPnsYXqzaWKN5ewh/wxzfYMQYRlyjXHeUtGnFK8vqBmw6ns4IdGth30+DceSsyob4cSPTrHM/EZI61OgHxxpYbKHvZEzA810GNbL2l5EAAR+pPq9CeJ/Uwv3T9LxPO2InrxsAxK2c+VnYEB9eTkonfUlCVkRIDqtjLej+3+1HLAVtoVjgrZ/bTBRA7l3nmhqYaaJSbj1DudyBonJJpz/3UvQLOhGfiuMFiidalqUkTf3GojvRWw+yePTfMDQXxkJip8qyQz4ER4CYOAsyw== yan.seguin@le-campus-numerique.fr
     

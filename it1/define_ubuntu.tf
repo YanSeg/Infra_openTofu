@@ -1,9 +1,8 @@
 resource "libvirt_volume" "cms_server_ubuntu-qcow2" {
   name = "cms_server_ubuntu-qcow2"
-  source = "/home/quentin.sirjean@Digital-Grenoble.local/Downloads/focal-server-cloudimg-amd64.img"
+  source = "/home/user/Desktop/TRASH/focal-server-cloudimg-amd64.img"
   format = "qcow2"
 }
-
 
 data "template_file" "user_data_ubuntu" {
   template = file("${path.module}/user-data.yml")
@@ -20,6 +19,10 @@ resource "libvirt_domain" "cms_server_ubuntu" {
   vcpu   = 2
 
   cloudinit = libvirt_cloudinit_disk.init_ubuntu.id
+  
+  cpu  {
+    mode = "host-passthrough"
+  }
 
   network_interface {
     network_name = "default"

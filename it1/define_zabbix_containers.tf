@@ -22,6 +22,7 @@ resource "docker_network" "custom_network" {
   }
 }
 
+## 
 
 resource "docker_network" "libvirt_network" {
   name = "osef"

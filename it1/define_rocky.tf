@@ -1,6 +1,6 @@
 resource "libvirt_volume" "cms_server_rocky-qcow2" {
   name = "cms_server_rocky-qcow2"
-  source = "/home/quentin.sirjean@Digital-Grenoble.local/Downloads/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
+  source = "/home/user/Desktop/TRASH/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
   format = "qcow2"
 }
 
@@ -24,6 +24,7 @@ resource "libvirt_domain" "cms_server_rocky" {
   cpu  {
     mode = "host-passthrough"
   }
+  
   network_interface {
     network_name = "default"
     wait_for_lease = true
